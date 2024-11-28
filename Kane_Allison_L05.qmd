@@ -1,0 +1,356 @@
+---
+title: "L05 Exploratory Data Analysis"
+subtitle: "Data Science 1 with R (STAT 301-1)"
+author: "Allison Kane"
+
+format:
+  html:
+    toc: true
+    embed-resources: true
+    code-fold: show
+    link-external-newwindow: true
+
+execute:
+  warning: false
+  
+from: markdown+emoji 
+---
+
+
+::: {.callout-tip icon=false}
+
+## Github Repo Link
+
+[Allison Github Repo Link](https://github.com/stat301-1-2023-fall/L05-eda-akane2460.git)
+
+:::
+
+## Overview
+
+The goal of this lab is to begin to use data visualization and transformation skills to explore data in a systematic way. We call this exploratory data analysis (EDA). 
+
+## Load packages
+
+```{r}
+#| label: load-pkgs
+
+# Loading package(s)
+library(tidyverse)
+library(nycflights13)
+library(lvplot)
+library(naniar)
+library(reprex)
+```
+
+
+## Datasets 
+
+This lab utilizes the `diamonds` and `flights` datasets contained in packages `ggplot2` and `nycflights13`, respectively. 
+
+## Exercises
+
+### Exercise 1 
+
+Explore the distribution of each of the `x`, `y`, and `z` variables in `diamonds`. What do you learn? Think about a diamond; think about how we might determine which dimension of a diamond is its length, width, and depth.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+Generally there is more variation in diamond width (x) than diamond length (y) and diamond height (z). This has been determined since most diamonds are probably having a much smaller depth rather than length and width. Looking at distribution of z compared to distribution of x, its distribution is centered much lower. Diamonds length is likely seen in distribution of y. This is makes sense, as diamonds vary in their width based on the size, but often these diamonds are used in rings which restrict the length and depth needed. 
+
+:::
+
+### Exercise 2
+
+Explore the distribution of `price`. Do you discover anything unusual or surprising? 
+
+*Hint:* Carefully think about the `binwidth` and make sure you try a wide range of values.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+```{r}
+#| label: ex 2
+ggplot(diamonds, aes(x = price)) +
+  geom_histogram(binwidth = 500, color = "white", boundary = 0) +
+  labs(
+    x = "Price",
+    y = "Count",
+    title = "Distribution of Price of Diamonds"
+  )
+
+```
+
+This distribution of price is skewed right and asymmetrical. The peak price is at approximately 1000 dollar and it appears to be unimodal. The typical price of a diamond is around 1200 dollars. Most diamonds range from about 1000 to 10,000 dollars.
+
+When examining the distribution, there appears to be an unusual gap in the number of diamonds priced around 1000 dollars. It might be easier to sell diamonds that are at 999 or 1000+ dollars rather than 1000 dollars.
+:::
+
+### Exercise 3
+
+What is the major difference between using `coord_cartesian()` vs `xlim()` or `ylim()` to zoom in on a histogram/graphic? What happens if you leave `binwidth` unset? What happens if you try to zoom so only half a bar shows?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+Coord cartesian allows specification of x and y limits within its arguments, allowing for zooming in on the plot without changing the x and y axes. Xlim() and ylim() allow for adjustment of their respective axes.
+
+If binwidth is unset, it generally falls to a default value that might not be right for the dataset. 
+
+If one tries to zoom in so only half a bar shows in a plot, this will improperly visualize the data, hiding the true trends in the plot. If only half a bar shows, it will visually mask the general shape of the distribution, making some bins look closer together than others despite the axes having not changed. 
+
+:::
+
+### Exercise 4
+
+What happens to missing values in a histogram? What happens to missing values in a bar chart? Why is there a difference in how missing values are handled in histograms and bar charts?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+In histograms, missing values are omitted. This is because since their numeric value is unknown, they cannot be placed in a specific bin and are therefore not included in the distribution.
+In bar charts, often missing values are treated as their own category. Sometimes this NA category is removed from the chart.
+Missing values are handled differently because the missing value in the histogram describes a numeric property whereas the missing value in a bar chart describes a categorical property.
+
+:::
+
+### Exercise 5
+
+Based on EDA, what variables in the diamonds dataset appears to be most important for predicting the price of a diamond? How is that variable correlated with cut? Why does the combination of those two relationships lead to lower-quality diamonds being more expensive?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+Based on EDA the variables most important for predicting the price appears to be size and cut. Generally, because the size is much larger, it is harder to get a higher quality cut of diamond. This results in many of the "Fair" cut diamonds, that are lower quality, still being more expensive than other higher quality cut diamonds due to the fact that they are larger in size. 
+
+:::
+
+### Exercise 6
+
+One problem with boxplots is that they were developed in an era of much smaller datasets and tend to display a prohibitively large number of “outlying values”. One approach to remedy this problem is the letter value plot. Install the `lvplot` package, and try using `geom_lv()` to display the distribution of price vs. cut. What do you learn? How do you interpret the plots?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+The letter value plot distribution helps eliminate these very large number of outlier values. In the boxplot of Price of diamonds by cut, there are a large number of outlier values. These are mitigated in the letter value, as it keeps the median of the plot but displays a successive amount of data extending outward. Each successive level out from the box containing the median contains half of the remaining data. It allows visualization of the general distribution but also investigation of the outlier data, since one can see how spread out the outliers are by looking at each successive level of the plot.
+
+:::
+
+### Exercise 7
+
+Create a visualization of diamond prices vs. a categorical variable from the diamonds dataset using `geom_violin()`, then a faceted `geom_histogram()`, then a colored `geom_freqpoly()`, and then a colored `geom_density()`. Compare and contrast the four plots. What are the pros and cons of each method of visualizing the distribution of a numerical variable based on the levels of a categorical variable?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+![Price by cut: Violin Plot](plots/violin_plot.png)
+![Price by cut: Histogram (Faceted)](plots/histogram_plot.png)
+![Price by cut: Freqpoly Plot](plots/freqpoly_plot.png)
+![Price by cut: Density Plot](plots/density_plot.png)
+These four plots are useful for different approaches to visualization. 
+
+In a violin plot, it is easy to assess the shape of the distribution visually. It is particularly useful for quick analysis of the overall range of data. It is not as useful when examining further than the overall shape of the data distribution. When looking for small gaps or unusual features, violin plots are not ideal.
+
+In a faceted histogram, one can assess the shape of the distribution easily. Comparisons across groups (in this case cut) are possible. However, other distributions make it easier to make these comparisons when they are displayed on one plot. Histograms can be adjusted with changing binwidth to examine deeper into the data's irregular features.
+
+In a freqpoly plot, the data is simplified by connecting data points by sets of lines. This is beneficial if one wants an intuitive way to visualize the data. Unlike histograms, density plots and violin plots, it does not create a smooth distribution to visualize the data. These sharper peaks and valleys in the distribution might be beneficial if one wants to examine gaps or unusual features but disadvantages viewers from gathering a clear image of the distribution. 
+
+In a density plot, the data is displayed in an easily-interpreted, smooth distribution. It is easy to see skew and measures of peak and center. It is not as helpful when trying to examine the data's unusual features and gaps.
+
+:::
+
+### Exercise 8
+
+Can you rescale the data used in the plot below to more clearly show the distribution of cut within color, or color within cut? Starting from the code below, use rescaling to show the distribution of (a) cut within color and (b) color within cut.  
+
+```{r}
+#| label: ex-08
+
+# joint distribution of cut & color
+diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = n))
+```
+
+::: {.callout-tip icon="false"}
+## Solution
+
+![Distribution of color within cut](plots/color_within_cut.png)
+
+![Distribution of cut within color](plots/cut_within_color.png)
+:::
+
+### Exercise 9
+
+In Exercise 8, why is it slightly better to use `aes(x = color, y = cut)` instead of `aes(x = cut, y = color)`?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+It is slightly better to use aes(x = color, y = cut) because its order along the y axis gives the reader an impression of the increasing quality of the diamond cut and its relationship with color of diamond. It makes gathering conclusions about this relationship come more readily.
+
+:::
+
+### Exercise 10
+
+Use the `smaller` dataset defined below for this exercise. Visualize the distribution of `carat` broken down by `price`. Construct 2 graphics, one using `cut_width()` and the other using `cut_number()`.
+
+```{r}
+#| label: ex-10
+
+smaller <- diamonds %>% 
+  filter(carat < 3)
+```
+
+
+::: {.callout-tip icon="false"}
+## Solution
+
+![Price of smaller carat diamonds: Cut width plot](plots/cut_width_plot.png)
+
+![Price of smaller carat diamonds: Cut width plot](plots/cut_number_plot.png)
+
+:::
+
+### Exercise 11
+
+How does the price distribution of very large diamonds compare to small diamonds? Is it as you expect, or does it surprise you?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+The price distribution of very large diamonds compared to small diamonds is somewhat unexpected. Large diamonds generally see less variation in price than smaller diamonds. Large diamonds, greater than 3 carats, are generally going to be priced much higher than smaller diamonds in general. The quality of diamond does not lower a large diamond's price below 8000 dollars. The most expensive large diamond is approximately 18000 dollars. Small diamonds, however, see a wider range of possible prices. Small diamonds range from approximately 300 dollars to 18000 dollars. This was suprising, however it does make sense. Larger diamonds have this smaller range in pricing because diamonds over 3 carats generally will be more expensive regardless of quality or other factor simply because they are large. Smaller diamonds have this wider range perhaps because their other properties, like quality or color, dictate their value much more than their size. The median price of smaller diamonds is approximately 2400 dollars, while larger diamonds it is 16000 dollars. This is not surpising, as generally larger diamonds tend to be more expensive than smaller ones. 
+
+:::
+
+### Exercise 12
+
+Determine which variables have missingness issues in the flights dataset.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+```{r}
+#| label: ex 12
+
+gg_miss_var(flights) 
+
+miss_var_summary(flights) |> 
+  filter(n_miss != 0)
+
+```
+
+:::
+
+### Exercise 13
+
+Demonstrate the use of at least 2 other functions from the `naniar` package to visualize missingness on a dataset of your choice and describe what the functions do.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+![geom_miss_point() function plot](plots/missing_flights_plot_1.png)
+
+The geom_miss_point() function allows the user to visualize points of NA data that usually are removed from a scatter plot. In this case, these values might be important. For example, missing arrival delays but having a departure delay might indicate that the flight was delayed and then never took off. 
+
+![gg_miss_var_cumsum() function plot](plots/missing_flights_plot_2.png)
+
+The gg_miss_var_cumsum() function allows the user to visualize the cumulative number of NA values that arise as one makes progress through the dataframe. This might be particularly useful for timewise data, like examining the months during which the most NA values were acquired throughout the year. 
+
+:::
+
+### Exercise 14
+
+::: {.callout-tip icon="false"}
+## Question
+
+Why isn't this code calculating the number of flights that depart `late`, `on_time`, and `early`?
+
+```{r}
+#| label: ex 14 question
+
+library(tidyverse)
+library(nycflights13)
+
+flights |> 
+  summarize(
+    late = sum(dep_delay > 0),
+    on_time = sum(dep_delay == 0),
+    early = sum(dep_delay < 0)
+    )
+
+```
+It has an output of NA for all three variables.
+
+:::
+
+::: {.callout-tip icon="false"}
+## Response
+
+The code did not work because it did not account for missing values of dep_delay.
+
+```{r}
+#| label: ex 14 answer
+
+library(tidyverse)
+library(nycflights13)
+
+flights |> 
+  summarize(
+    late = sum(dep_delay > 0, na.rm = TRUE),
+    on_time = sum(dep_delay == 0, na.rm = TRUE),
+    early = sum(dep_delay < 0, na.rm = TRUE)
+  )
+
+```
+
+The output should be 128432 late flights, 16514 on time flights, 183575 early flights.
+
+:::
+
+## Case Study
+
+Use the `tinder_data` file in the `data` subdirectory to **develop 1 research question pertaining to the dataset**.^[This dataset was sourced from [Swipestats.io](https://www.swipestats.io/).]
+
+- Explore your research question using at least 3 visualizations
+- Ideally these should be different types of explorations (uni-variate, bi-variate, and multi-variate) but this may vary depending on your research question
+
+In your write-up, state your research question, explain any insights you gained from the supporting visualizations, incorporate your graphics in appropriate places in the document, and state any new questions or conclusions. Students should hide their code for this case study report.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+In looking at data from Tinder, there can be many misconceptions about women's experiences dating, especially queer women. There are often misconceptions that queer women, bisexual women specifically, have an easier time of dating compared to straight women. Those perpetuating these misconceptions often cite different messaging activity and a different size dating pool for these differences in the dating experience. Many emphasize that these misconceptions are incorrect and, sometimes, harmful to queer women in the dating world. 
+
+The research question being asked is: do queer women (women interested in dating other women or both men and women) have more success in dating than straight women on Tinder? Success will be measured by number of matches, number of ghostings, the ratio of messages sent to messages received and the ratio of matches to likes sent.
+
+Conclusions:
+
+Generally, I have found that there is no dramatically different success in the dating world observed between Queer and straight women on Tinder. 
+
+Matches
+![Matches](plots/women_matches.png)
+In the case of matches, generally the distribution of the number of matches received is skewed right. The median number of matches for queer women is approximately 300, while the median number of matches for straight women was approximately 400. The spread of the number of matches differed quite a bit between queer and straight women, with queer women ranging from 0 to approximately 900 matches and straight women ranging from 0 to approximately 2100 matches. 
+This provides some insight into how queer and straight women differ slightly in their dating experience, but the typical user is not so different in their number of matches. 
+
+
+Ghostings
+![Ghostings](plots/women_ghostings.png)
+
+Again, we see that these distributions are skewed to the right heavily. There is a larger range of number of ghostings for straight women than queer women, making sense as there is a larger number of straight women in this dataset. Queer and straight women seem to have a similar median number of ghostings, indicating that neither group is more likely to be ghosted than the other on tinder. 
+
+
+Messages Sent and Received
+![Messages Sent and Received](plots/women_sent_received.png)
+When examining the messages sent and messages received for queer and straight women, we generally see that most appear to have a fairly even ratio of messages sent to messages received. This indicates that neither queer nor straight women are more likely to put in more effort messaging rather than receiving in their dating activity. 
+
+
+Matches and Likes
+![Matches and Likes](plots/matches_and_likes_plot.png)
+Finally, examining the ratio of matches to likes sent, it does not seem that queer women have more success in receiving likes back than straight women. The line on each plot indicates a 100 percent success rate in receiving a match when a like is sent. Straight and queer wome both seem slightly below that line. There are a few straight women that are far off to the side, sending far more likes than matches back received. However, they are not in general concordance with the rest of the straight women in this sample.
+
+These findings generally indicate that queer and straight women have relatively the same success in dating on Tinder. Further testing should be done in the future, perhaps including a larger dataset to truly confirm these conclusions' validity. 
+
+
+:::
